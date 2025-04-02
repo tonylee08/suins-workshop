@@ -1,10 +1,11 @@
 /// Module: test_deps
 module suins_workshop::suins_workshop;
 
+use std::string::String;
 use sui::clock::Clock;
 use sui::vec_set::{Self, VecSet};
 use suins::controller::set_target_address;
-use suins::domain::Domain;
+use suins::domain;
 use suins::name_record::NameRecord;
 use suins::registry::{Registry, lookup};
 use suins::suins::SuiNS;
@@ -12,6 +13,8 @@ use suins::suins_registration::SuinsRegistration;
 
 const EWhitelistNotSet: u64 = 1;
 const EIncorrectNft: u64 = 2;
+const EAddressNotWhitelisted: u64 = 3;
+const EAddressAlreadyWhitelisted: u64 = 4;
 
 public struct WhiteListAddresses has key, store {
     id: UID,
@@ -48,6 +51,10 @@ public fun add_whitelist(
     whitelisted_address: address,
 ) {
     assert!(whitelist.nft_id == nft.uid().to_inner(), EIncorrectNft);
+    assert!(
+        !whitelist.whitelisted_addresses.contains(&whitelisted_address),
+        EAddressAlreadyWhitelisted,
+    );
     whitelist.whitelisted_addresses.insert(whitelisted_address);
 }
 
@@ -57,6 +64,7 @@ public fun remove_whitelist(
     whitelisted_address: address,
 ) {
     assert!(whitelist.nft_id == nft.uid().to_inner(), EIncorrectNft);
+    assert!(whitelist.whitelisted_addresses.contains(&whitelisted_address), EAddressNotWhitelisted);
     whitelist.whitelisted_addresses.remove(&whitelisted_address);
 }
 
@@ -68,7 +76,9 @@ public fun whitelisted_addresses(whitelist: &WhiteListAddresses): VecSet<address
     whitelist.whitelisted_addresses
 }
 
-public fun whitelist_id(registry: &Registry, domain: Domain): address {
+public fun whitelist_id(suins: &SuiNS, domain_name: String): address {
+    let registry = suins.registry<Registry>();
+    let domain = domain::new(domain_name);
     let name_record = registry.lookup(domain).borrow<NameRecord>();
 
     let whitelist_object = name_record.target_address().get_with_default<address>(@0x0);
