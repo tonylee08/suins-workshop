@@ -1,0 +1,9 @@
+[package]
+name = "suins_workshop"
+edition = "2024.beta"
+
+[dependencies]
+suins = { git = "https://github.com/MystenLabs/suins-contracts.git", subdir = "packages/suins", rev = "testnet" }
+
+[addresses]
+suins_workshop = "0x0"
