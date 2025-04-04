@@ -9,11 +9,18 @@ import { decodeSuiPrivateKey } from "@mysten/sui/cryptography";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { Secp256k1Keypair } from "@mysten/sui/keypairs/secp256k1";
 import { Secp256r1Keypair } from "@mysten/sui/keypairs/secp256r1";
-import { Transaction } from "@mysten/sui/transactions";
+import { namedPackagesPlugin, Transaction } from "@mysten/sui/transactions";
 import { fromBase64 } from "@mysten/sui/utils";
 import { bcs } from "@mysten/sui/bcs";
 
 const SUI = process.env.SUI_BINARY ?? `sui`;
+const mainnetPlugin = namedPackagesPlugin({
+  url: "https://mainnet.mvr.mystenlabs.com",
+});
+
+const testnetPlugin = namedPackagesPlugin({
+  url: "https://testnet.mvr.mystenlabs.com",
+});
 
 export const getActiveAddress = () => {
   return execSync(`${SUI} client active-address`, { encoding: "utf8" }).trim();
@@ -131,14 +138,15 @@ export type Network = "mainnet" | "testnet" | "devnet" | "localnet";
   //   console.log(`isWhitelisted: ${isWhitelisted}`);
 
   const tx = new Transaction();
+  tx.addSerializationPlugin(testnetPlugin);
 
   const whitelist = tx.moveCall({
-    target: `0x0267e8169a38e8fc50076de2b6fe901290aa059cbd3e44d736d08b4d296aea7d::suins_workshop::create_whitelist`,
+    target: `@tonymysten/sample::suins_workshop::create_whitelist`,
     arguments: [tx.object(suins), tx.object(nft), tx.object.clock()],
   });
 
   tx.moveCall({
-    target: `${packageId}::suins_workshop::add_whitelist`,
+    target: `@tonymysten/sample::suins_workshop::add_whitelist`,
     arguments: [
       tx.object(nft),
       whitelist,
@@ -149,7 +157,7 @@ export type Network = "mainnet" | "testnet" | "devnet" | "localnet";
   });
 
   tx.moveCall({
-    target: `0x0267e8169a38e8fc50076de2b6fe901290aa059cbd3e44d736d08b4d296aea7d::suins_workshop::share`,
+    target: `@tonymysten/sample::suins_workshop::share`,
     arguments: [whitelist],
   });
 
