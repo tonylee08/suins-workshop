@@ -3,7 +3,10 @@ name = "suins_workshop"
 edition = "2024.beta"
 
 [dependencies]
-suins = { git = "https://github.com/MystenLabs/suins-contracts.git", subdir = "packages/suins", rev = "testnet" }
+suins = { r.mvr = "@suins/core" }
 
 [addresses]
 suins_workshop = "0x0"
+
+[r.mvr]
+network = "testnet"
