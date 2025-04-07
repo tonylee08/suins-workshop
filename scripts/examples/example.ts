@@ -84,84 +84,105 @@ export const getClient = (network: Network) => {
 
 export type Network = "mainnet" | "testnet" | "devnet" | "localnet";
 
+const getWhitelistId = async (
+  suiClient: SuiClient,
+  suins: string,
+  domain: string
+): Promise<string> => {
+  const devTx = new Transaction();
+  devTx.addSerializationPlugin(testnetPlugin);
+
+  devTx.moveCall({
+    target: `@tonymysten/sample::suins_workshop::whitelist_id`,
+    arguments: [devTx.object(suins), devTx.pure.string(domain)],
+  });
+
+  const whitelistRes = await suiClient.devInspectTransactionBlock({
+    sender: getActiveAddress(),
+    transactionBlock: devTx,
+  });
+  const bytes = whitelistRes.results![0].returnValues![0][0];
+  const ID = bcs.struct("ID", {
+    bytes: bcs.Address,
+  });
+
+  const whitelistId = ID.parse(new Uint8Array(bytes)).bytes;
+
+  return whitelistId.toString();
+};
+
+const isWhitelisted = async (
+  suiClient: SuiClient,
+  whitelistId: string,
+  address: string
+): Promise<boolean> => {
+  const devTx = new Transaction();
+  devTx.addSerializationPlugin(testnetPlugin);
+
+  devTx.moveCall({
+    target: `@tonymysten/sample::suins_workshop::is_whitelisted`,
+    arguments: [devTx.object(whitelistId), devTx.pure.address(address)],
+  });
+  const whitelistRes = await suiClient.devInspectTransactionBlock({
+    sender: getActiveAddress(),
+    transactionBlock: devTx,
+  });
+  const bytes = whitelistRes.results![0].returnValues![0][0];
+
+  return bcs.Bool.parse(new Uint8Array(bytes));
+};
+
 (async () => {
   // Update constant for env
   const env = "testnet";
-  const packageId =
-    "0x0267e8169a38e8fc50076de2b6fe901290aa059cbd3e44d736d08b4d296aea7d";
-  const nft =
-    "0x5c25935a0ff22c00de921ac499ce7d8a8087f6d21f01275a1f51d5c9fcf5f48a";
   const suins =
     "0x300369e8909b9a6464da265b9a5a9ab6fe2158a040e84e808628cde7a07ee5a3";
   const domain = "mywhitelist.sui";
 
-  //   const suiClient = new SuiClient({
-  //     url: getFullnodeUrl(env),
-  //   });
-
-  //   const devTx = new Transaction();
-
-  //   devTx.moveCall({
-  //     target: `@tonymysten/sample::suins_workshop::whitelist_id`,
-  //     arguments: [devTx.object(suins), devTx.pure.string(domain)],
-  //   });
-
-  //   const whitelistRes = await suiClient.devInspectTransactionBlock({
-  //     sender:
-  //       "0x5710140c577ed0d6071af1648e9ada06b6894e5c7056360bc8b5992466a1ae6a",
-  //     transactionBlock: devTx,
-  //   });
-  //   const bytes = whitelistRes.results![0].returnValues![0][0];
-  //   const
-  //   const whitelistId = bcs.ID.parse(new Uint8Array(bytes));
-
-  //   console.log(whitelistId);
-
-  //   const devTx2 = new Transaction();
-
-  //   devTx2.moveCall({
-  //     target: `${packageId}::suins_workshop::is_whitelisted`,
-  //     arguments: [
-  //       devTx2.object(whitelistId),
-  //       devTx2.pure.address(whitelistedAddress),
-  //     ],
-  //   });
-
-  //   const response = await suiClient.devInspectTransactionBlock({
-  //     sender:
-  //       "0x5710140c577ed0d6071af1648e9ada06b6894e5c7056360bc8b5992466a1ae6a",
-  //     transactionBlock: devTx2,
-  //   });
-  //   const isWhitelisted = bcs.Bool.parse(
-  //     new Uint8Array(response.results![0].returnValues![0][0])
-  //   );
-  //   console.log(`isWhitelisted: ${isWhitelisted}`);
-
-  const tx = new Transaction();
-  tx.addSerializationPlugin(testnetPlugin);
-
-  const whitelist = tx.moveCall({
-    target: `@tonymysten/sample::suins_workshop::create_whitelist`,
-    arguments: [tx.object(suins), tx.object(nft), tx.object.clock()],
+  const suiClient = new SuiClient({
+    url: getFullnodeUrl(env),
   });
 
-  tx.moveCall({
-    target: `@tonymysten/sample::suins_workshop::add_whitelist`,
-    arguments: [
-      tx.object(nft),
-      whitelist,
-      tx.pure.address(
-        "0xa7f326888de0b122c5611a1c3047f03f663933396938b551fd324627db44f6b0"
-      ),
-    ],
-  });
+  const whitelistId = await getWhitelistId(suiClient, suins, domain);
+  console.log(`Whitelist ID: ${whitelistId}`);
 
-  tx.moveCall({
-    target: `@tonymysten/sample::suins_workshop::share`,
-    arguments: [whitelist],
-  });
+  const addressToCheck =
+    "0x5710140c577ed0d6071af1648e9ada06b6894e5c7056360bc8b5992466a1ae6a";
+  const whitelisted = await isWhitelisted(
+    suiClient,
+    whitelistId,
+    addressToCheck
+  );
 
-  let res = await signAndExecute(tx, env);
+  console.log("Whitelisted:", whitelisted);
 
-  console.dir(res, { depth: null });
+  const nft =
+    "0x5c25935a0ff22c00de921ac499ce7d8a8087f6d21f01275a1f51d5c9fcf5f48a";
+  // const tx = new Transaction();
+  // tx.addSerializationPlugin(testnetPlugin);
+
+  // // const whitelist = tx.moveCall({
+  // //   target: `@tonymysten/sample::suins_workshop::create_whitelist`,
+  // //   arguments: [tx.object(suins), tx.object(nft), tx.object.clock()],
+  // // });
+
+  // tx.moveCall({
+  //   target: `@tonymysten/sample::suins_workshop::add_whitelist`,
+  //   arguments: [
+  //     tx.object(nft),
+  //     tx.object(whitelistId),
+  //     tx.pure.address(
+  //       "0x5710140c577ed0d6071af1648e9ada06b6894e5c7056360bc8b5992466a1ae6a"
+  //     ),
+  //   ],
+  // });
+
+  // // tx.moveCall({
+  // //   target: `@tonymysten/sample::suins_workshop::share`,
+  // //   arguments: [whitelist],
+  // // });
+
+  // let res = await signAndExecute(tx, env);
+
+  // console.dir(res, { depth: null });
 })();
