@@ -133,54 +133,53 @@ const isWhitelisted = async (
 };
 
 (async () => {
-  // Update constant for env
   const env = "testnet";
   const suins =
     "0x300369e8909b9a6464da265b9a5a9ab6fe2158a040e84e808628cde7a07ee5a3";
-  const domain = "mywhitelist.sui";
+  const addressInWhitelist =
+    "0x5710140c577ed0d6071af1648e9ada06b6894e5c7056360bc8b5992466a1ae6a";
 
   const suiClient = new SuiClient({
     url: getFullnodeUrl(env),
   });
 
-  const whitelistId = await getWhitelistId(suiClient, suins, domain);
+  const domain = "mywhitelist.sui";
+  const whitelistId = await getWhitelistId(suiClient, suins, domain); // use the suins domain to get the whitelist id
   console.log(`Whitelist ID: ${whitelistId}`);
 
-  const addressToCheck =
-    "0x5710140c577ed0d6071af1648e9ada06b6894e5c7056360bc8b5992466a1ae6a";
   const whitelisted = await isWhitelisted(
     suiClient,
     whitelistId,
-    addressToCheck
+    addressInWhitelist
   );
 
-  console.log("Whitelisted:", whitelisted);
+  console.log(`${addressInWhitelist} Whitelisted:, ${whitelisted}`);
 
-  const nft =
-    "0x5c25935a0ff22c00de921ac499ce7d8a8087f6d21f01275a1f51d5c9fcf5f48a";
+  // const nft =
+  //   "0x5c25935a0ff22c00de921ac499ce7d8a8087f6d21f01275a1f51d5c9fcf5f48a"; // mywhitelist.sui NFT id
   // const tx = new Transaction();
   // tx.addSerializationPlugin(testnetPlugin);
 
-  // // const whitelist = tx.moveCall({
-  // //   target: `@tonymysten/sample::suins_workshop::create_whitelist`,
-  // //   arguments: [tx.object(suins), tx.object(nft), tx.object.clock()],
-  // // });
+  // const whitelist = tx.moveCall({
+  //   target: `@tonymysten/sample::suins_workshop::create_whitelist`,
+  //   arguments: [tx.object(suins), tx.object(nft), tx.object.clock()],
+  // });
 
   // tx.moveCall({
   //   target: `@tonymysten/sample::suins_workshop::add_whitelist`,
   //   arguments: [
   //     tx.object(nft),
-  //     tx.object(whitelistId),
+  //     whitelist,
   //     tx.pure.address(
-  //       "0x5710140c577ed0d6071af1648e9ada06b6894e5c7056360bc8b5992466a1ae6a"
+  //       addressInWhitelist // address to add to whitelist
   //     ),
   //   ],
   // });
 
-  // // tx.moveCall({
-  // //   target: `@tonymysten/sample::suins_workshop::share`,
-  // //   arguments: [whitelist],
-  // // });
+  // tx.moveCall({
+  //   target: `@tonymysten/sample::suins_workshop::share`,
+  //   arguments: [whitelist],
+  // });
 
   // let res = await signAndExecute(tx, env);
 
