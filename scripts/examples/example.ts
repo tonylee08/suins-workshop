@@ -139,6 +139,7 @@ const isWhitelisted = async (
   const addressInWhitelist =
     "0x5710140c577ed0d6071af1648e9ada06b6894e5c7056360bc8b5992466a1ae6a";
 
+  /// Retrieve whitelist
   const suiClient = new SuiClient({
     url: getFullnodeUrl(env),
   });
