@@ -154,7 +154,7 @@ const isWhitelisted = async (
     addressInWhitelist
   );
 
-  console.log(`${addressInWhitelist} Whitelisted:, ${whitelisted}`);
+  console.log(`${addressInWhitelist} Whitelisted: ${whitelisted}`);
 
   // const nft =
   //   "0x5c25935a0ff22c00de921ac499ce7d8a8087f6d21f01275a1f51d5c9fcf5f48a"; // mywhitelist.sui NFT id
