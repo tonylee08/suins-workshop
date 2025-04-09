@@ -145,7 +145,8 @@ const isWhitelisted = async (
   });
 
   const domain = "mywhitelist.sui";
-  const whitelistId = await getWhitelistId(suiClient, suins, domain); // use the suins domain to get the whitelist id
+  // use the suins domain to get the whitelist id
+  const whitelistId = await getWhitelistId(suiClient, suins, domain);
   console.log(`Whitelist ID: ${whitelistId}`);
 
   const whitelisted = await isWhitelisted(
