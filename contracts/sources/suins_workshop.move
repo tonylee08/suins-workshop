@@ -1,4 +1,3 @@
-/// Module: test_deps
 module suins_workshop::suins_workshop;
 
 use std::string::String;
@@ -21,8 +20,6 @@ public struct WhiteListAddresses has key {
     nft_id: ID,
     whitelisted_addresses: VecSet<address>,
 }
-
-/// --move-call create_whitelist --assign wl --move-call add_to_whitelist X ... --move-call share X
 
 public fun create_whitelist(
     suins: &mut SuiNS,
